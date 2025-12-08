@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{ region.RegionName }} Map</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+    }
+
+    .title-container {
+      text-align: center;
+      color: white;
+    }
+
+    .map-container {
+      display: flex;
+      justify-content: flex-start; 
+      padding: 20px;
+    }
+
+    .ray-container {
+     display: flex;
+     align-items: center;
+     width: 100%;
+     margin: 10px 0;
+     }
+
+   .ray {
+    flex-grow: 1;
+    height: 7px; 
+    background-color: #d9d56a;
+    }
+
+   .side-rectangle {
+    position: relative; 
+    width: 1200px;
+    height: 596px;
+    background-color: rgba(255, 255, 255, 0.92);
+    margin-left: 0px;
+    margin-right: 20px;
+    border: 8px solid #d9d56a;
+    box-sizing: border-box;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  
+  .weather-content {
+  max-width: 850px;
+}
+
+  .veg-panel {
+  position: absolute;
+  top: 20px;
+  right: 4px;
+  width: auto;                      
+  min-width: 400px;                 
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 8px;
+  box-sizing: border-box;
+  font-size: 0.85rem;
+  z-index: 10;
+}
+
+
+button {
+  font-size: 0.85rem;
+  padding: 4px 6px;
+  min-width: 60px;
+  cursor: pointer;
+  background-color: #f2efa5;
+  border: none;
+  border-radius: 4px;
+  color: black;
+}
+
+label {
+  font-weight: 600;
+  color: #333;
+  margin-right: 6px;
+}
+
+#veg-chart {
+  display: block;
+  width: 240px !important;
+  height: 240px !important;
+  }
+
+  #chart {
+    width: 850px;
+    height: 200px;
+  }
+    svg {
+      width: 800px;
+      height: 992px;
+      flex-shrink: 0;
+    }
+
+    polygon {
+      fill: rgba(87, 186, 87, 0.9);
+      stroke: rgba(33, 128, 33, 0.9);
+      stroke-width: 1;
+    }
+  </style>
+
+
+</head>
+<body style="background-image: url('static/background.jpg'); background-size: cover; background-repeat: no-repeat;">
+	<div class="ray-container">
+  <div class="ray"></div>
+  	<div class="title-container">
+    	<h1>{{ region.RegionName }}</h1>
+  	</div>
+	<div class="ray"></div>
+   </div>
+  <div class="map-container">
+    <svg viewBox="0 0 250 298" xmlns="http://www.w3.org/2000/svg">
+      	{% set scale_x = 250 / (max_x - min_x) / 2 %}
+  	{% set scale_y = 298 / (max_y - min_y) / 2 %}
+	{% for poly in region.normalized_polygons %}
+         <polygon
+      		points="{% for x, y in poly %}{{ ((x - min_x) * scale_x)|round(2) }},{{ ((y - min_y) * scale_y)|round(2) }} {% endfor %}"
+      		fill="rgba(55, 251, 55, 0.9)"
+		stroke="rgba(33, 128, 33, 0.9)"
+		stroke-width="1">
+    	</polygon>
+      {% endfor %}
+    </svg>
+
+
+  <div class="side-rectangle">
+  <div class="weather-content">
+    <h2>Weather Statistics</h2>
+
+    <!-- Weather Controls -->
+    <label for="year-select">Year:</label>
+    <select id="year-select"></select>
+
+    <label for="granularity-select">Granularity:</label>
+    <select id="granularity-select">
+      <option value="daily">Daily</option>
+      <option value="monthly">Monthly</option>
+      <option value="seasonal">Seasonal</option>
+    </select>
+
+    <label for="variable-select">Variable:</label>
+    <select id="variable-select">
+      <option value="max_temp">Max Temp</option>
+      <option value="min_temp">Min Temp</option>
+      <option value="rh_tmax">Day Humidity</option>
+      <option value="rh_tmin">Night Humidity</option>
+      <option value="et_short_crop">Evapotranspiration</option>
+      <option value="daily_rain">Rainfall</option>
+      <option value="radiation">Radiation</option>
+    </select>
+
+    <button id="plot-button">Plot</button>
+    <canvas id="chart" width="550" height="200" style="margin-top: 20px;"></canvas>
+
+    <!-- Soil Summary -->
+    <div style="margin-top: 30px;">
+      <h2>Soil Summary</h2>
+      <p><strong>Top Soil Types:</strong> {{ soil_stats.soil_1 }} (1st), {{ soil_stats.soil_2 }} (2nd)</p>
+      <p><strong>Median Nitrogen Level:</strong> {{ soil_stats.n_range }}</p>
+      <p><strong>Median Phosphorus Level:</strong> {{ soil_stats.p_range }}</p>
+      <p><strong>Median pH Level:</strong> {{ soil_stats.ph_range }}</p>
+    </div>
+
+    <!-- Vegetation Controls -->
+<div class="veg-panel">
+    <h2>Vegetation Summary</h2>
+
+    <div>
+      <label for="veg-year-select">Year:</label>
+      <select id="veg-year-select"></select>
+
+      <label for="veg-season-select">Season:</label>
+      <select id="veg-season-select"></select>
+
+      <button id="veg-plot-button">Plot</button>
+    </div>
+
+    <canvas id="veg-chart"></canvas>
+
+
+  <h2>Yield</h2>
+
+  <p><strong>Region Area:</strong> {{ region_area }} ha</p>
+
+  <label for="yield-year-select">Year:</label>
+  <select id="yield-year-select"></select>
+
+  <p><strong>Actual Yield:</strong> <span id="actual-yield">—</span> bales</p>
+  <p><strong>Expected Yield:</strong> <span id="expected-yield">None</span> bales</p>
+
+
+  </div>
+
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const regionSlug = "{{ region.href }}";
+  let weatherChartInstance = null;
+  let vegetationChartInstance = null;
+
+  // Weather Chart
+  async function loadYears() {
+    const res = await fetch(`/api/years?region=${regionSlug}`);
+    const years = await res.json();
+    const yearSelect = document.getElementById("year-select");
+    years.forEach(y => {
+      const opt = document.createElement("option");
+      opt.value = y;
+      opt.textContent = y;
+      yearSelect.appendChild(opt);
+    });
+  }
+
+  async function updateChart() {
+  const year = document.getElementById("year-select").value;
+  const granularity = document.getElementById("granularity-select").value;
+  const variable = document.getElementById("variable-select").value;
+
+  const res = await fetch(`/api/data?region=${regionSlug}&year=${year}&granularity=${granularity}&variable=${variable}`);
+  const data = await res.json();
+
+  const ctx = document.getElementById("chart").getContext("2d");
+  if (weatherChartInstance) weatherChartInstance.destroy();
+
+  weatherChartInstance = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: Object.keys(data),
+      datasets: [{
+        label: variable,
+        data: Object.values(data),
+        backgroundColor: "rgba(75, 192, 192, 0.6)"
+      }]
+    },
+    options: {
+      responsive: false,
+      scales: {
+        x: { title: { display: true, text: granularity } },
+        y: { title: { display: true, text: variable } }
+      }
+    }
+  });
+}
+
+  document.getElementById("plot-button").addEventListener("click", updateChart);
+
+  
+  async function loadVegYears() {
+    const res = await fetch(`/api/years?region=${regionSlug}`);
+    const years = await res.json();
+    const yearSelect = document.getElementById("veg-year-select");
+    years.forEach(y => {
+      const opt = document.createElement("option");
+      opt.value = y;
+      opt.textContent = y;
+      yearSelect.appendChild(opt);
+    });
+  }
+
+  async function loadSeasons() {
+    const res = await fetch(`/api/seasons?region=${regionSlug}`);
+    const seasons = await res.json();
+    const seasonSelect = document.getElementById("veg-season-select");
+    seasons.forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = s;
+      opt.textContent = s;
+      seasonSelect.appendChild(opt);
+    });
+  }
+
+  async function plotVegetationChart() {
+  const year = document.getElementById("veg-year-select").value;
+  const season = document.getElementById("veg-season-select").value;
+
+  const res = await fetch(`/api/vegetation?region=${regionSlug}&year=${year}&season=${season}`);
+  const data = await res.json();
+
+  const ctx = document.getElementById("veg-chart").getContext("2d");
+  if (vegetationChartInstance) vegetationChartInstance.destroy();
+
+  vegetationChartInstance = new Chart(ctx, {
+    type: "pie",
+    data: {
+      labels: Object.keys(data),
+      datasets: [{
+        data: Object.values(data),
+        backgroundColor: [
+          "#6ec6ff", "#a1887f", "#c5e1a5",
+          "#81c784", "#4caf50", "#2e7d32"
+        ]
+      }]
+    },
+    options: {
+      responsive: false,
+      plugins: {
+        legend: { position: "right" },
+        title: { display: true, text: `Vegetation Distribution (${season} ${year})` }
+      }
+    }
+  });
+}
+
+  document.getElementById("veg-plot-button").addEventListener("click", plotVegetationChart);
+
+async function loadYieldYears() {
+  const res = await fetch(`/api/years?region=${regionSlug}`);
+  const years = await res.json();
+  const select = document.getElementById("yield-year-select");
+  years.forEach(y => {
+    const opt = document.createElement("option");
+    opt.value = y;
+    opt.textContent = y;
+    select.appendChild(opt);
+  });
+
+  
+  if (years.length > 0) {
+    select.value = years[0];
+    updateYield();
+  }
+}
+
+async function updateYield() {
+  const year = document.getElementById("yield-year-select").value;
+  const res = await fetch(`/api/yield?region=${regionSlug}&year=${year}`);
+  const data = await res.json();
+
+  const actual = data.hasOwnProperty("yield") ? data.yield : null;
+  document.getElementById("actual-yield").textContent =
+    actual !== null && actual !== undefined ? actual : "None";
+
+  const predicted = data.hasOwnProperty("predicted_yield") ? data.predicted_yield : null;
+  document.getElementById("expected-yield").textContent =
+    predicted !== null && predicted !== undefined ? predicted : "None";
+}
+
+document.getElementById("yield-year-select").addEventListener("change", updateYield);
+
+
+  
+  loadYieldYears();
+  loadYears();
+  loadVegYears();
+  loadSeasons();
+</script>
+
+</body>
+</html>

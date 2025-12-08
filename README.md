@@ -1,2 +1,2 @@
 # cotton_yield_forecasting
-My final project of a bachelor degree
+This project developed a machine learning system to forecast cotton yields across the Murray–Darling Basin using only publicly available data. Climate, soil, and vegetation indices were aggregated by season and region, then processed into datasets for 12 cotton‑growing regions spanning 2006–2019. Nine regression and tree‑based models were tested with different preprocessing strategies, validated through walk‑forward methods, with Decision Trees and XGBoost performing best in most regions. The tool achieved strong accuracy (MASE as low as 0.35) and provides a scalable, sensor‑free forecasting framework to support farmers, industry groups, and policymakers in decision‑making and risk assessment.
